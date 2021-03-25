@@ -13,4 +13,6 @@ excluded-charts:
   - ejbca
   - wavefront
   - harbor
+  - wavefront-adapter-for-istio
+  - wavefront-prometheus-storage-adapter
 remote: origin
