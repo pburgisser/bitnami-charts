@@ -56,6 +56,9 @@ spec:
         fsGroup: {{ .Values.bucketweb.securityContext.fsGroup }}
       {{- end }}
       containers:
+        {{- if .Values.bucketweb.extraContainers }}
+{{ toYaml .Values.bucketweb.extraContainers | indent 8 }}
+        {{- end }}         
         - name: bucketweb
           image: {{ include "thanos.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
@@ -92,6 +95,18 @@ spec:
           volumeMounts:
             - name: objstore-config
               mountPath: /conf
+          {{- range .Values.bucketweb.extraConfigmapMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              subPath: {{ .subPath | default "" }}
+              readOnly: {{ .readOnly }}
+          {{- end }}
+          {{- range .Values.bucketweb.extraSecretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              subPath: {{ .subPath }}
+              readOnly: {{ .readOnly }}
+          {{- end }}              
       volumes:
         - name: objstore-config
           secret:
@@ -99,4 +114,16 @@ spec:
             {{- if .Values.existingObjstoreSecretItems }}
             items: {{- toYaml .Values.existingObjstoreSecretItems | nindent 14 }}
             {{- end }}
+      {{- range .Values.bucketweb.extraConfigmapMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .configMap }}
+            defaultMode: {{ .defaultMode }}
+      {{- end }}
+      {{- range .Values.bucketweb.extraSecretMounts }}
+        - name: {{ .name }}
+          secret:
+            secretName: {{ .secretName }}
+            defaultMode: {{ .defaultMode }}
+      {{- end }}            
 {{- end }}
